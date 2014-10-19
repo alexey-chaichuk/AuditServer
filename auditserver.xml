@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="auditserver" default="all">
+  
+  
+  <property file="auditserver.properties"/>
+  <!-- Uncomment the following property if no tests compilation is needed -->
+  <!-- 
+  <property name="skip.tests" value="true"/>
+   -->
+  
+  <!-- Compiler options -->
+  
+  <property name="compiler.debug" value="on"/>
+  <property name="compiler.generate.no.warnings" value="off"/>
+  <property name="compiler.args" value=""/>
+  <property name="compiler.max.memory" value="700m"/>
+  <patternset id="ignored.files">
+    <exclude name="**/CVS/**"/>
+    <exclude name="**/SCCS/**"/>
+    <exclude name="**/RCS/**"/>
+    <exclude name="**/rcs/**"/>
+    <exclude name="**/.DS_Store/**"/>
+    <exclude name="**/.svn/**"/>
+    <exclude name="**/.pyc/**"/>
+    <exclude name="**/.pyo/**"/>
+    <exclude name="**/*.pyc/**"/>
+    <exclude name="**/*.pyo/**"/>
+    <exclude name="**/.git/**"/>
+    <exclude name="**/*.hprof/**"/>
+    <exclude name="**/_svn/**"/>
+    <exclude name="**/.hg/**"/>
+    <exclude name="**/*.lib/**"/>
+    <exclude name="**/*~/**"/>
+    <exclude name="**/__pycache__/**"/>
+    <exclude name="**/.bundle/**"/>
+    <exclude name="**/*.rbc/**"/>
+  </patternset>
+  <patternset id="library.patterns">
+    <include name="*.zip"/>
+    <include name="*.apk"/>
+    <include name="*.war"/>
+    <include name="*.egg"/>
+    <include name="*.ear"/>
+    <include name="*.ane"/>
+    <include name="*.swc"/>
+    <include name="*.jar"/>
+  </patternset>
+  <patternset id="compiler.resources">
+    <exclude name="**/?*.java"/>
+    <exclude name="**/?*.form"/>
+    <exclude name="**/?*.class"/>
+    <exclude name="**/?*.groovy"/>
+    <exclude name="**/?*.scala"/>
+    <exclude name="**/?*.flex"/>
+    <exclude name="**/?*.kt"/>
+    <exclude name="**/?*.clj"/>
+  </patternset>
+  
+  <!-- Modules -->
+  
+  
+  <!-- Module AuditServer -->
+  
+  <dirname property="module.auditserver.basedir" file="${ant.file}"/>
+  
+  
+  
+  <property name="compiler.args.auditserver" value="-encoding UTF-8 -source 1.6 ${compiler.args}"/>
+  
+  <property name="auditserver.output.dir" value="${module.auditserver.basedir}/out/production/AuditServer"/>
+  <property name="auditserver.testoutput.dir" value="${module.auditserver.basedir}/out/test/AuditServer"/>
+  
+  <path id="auditserver.module.bootclasspath">
+    <!-- Paths to be included in compilation bootclasspath -->
+  </path>
+  
+  <path id="auditserver.module.production.classpath"/>
+  
+  <path id="auditserver.runtime.production.module.classpath">
+    <pathelement location="${auditserver.output.dir}"/>
+  </path>
+  
+  <path id="auditserver.module.classpath">
+    <pathelement location="${auditserver.output.dir}"/>
+  </path>
+  
+  <path id="auditserver.runtime.module.classpath">
+    <pathelement location="${auditserver.testoutput.dir}"/>
+    <pathelement location="${auditserver.output.dir}"/>
+  </path>
+  
+  
+  <patternset id="excluded.from.module.auditserver">
+    <patternset refid="ignored.files"/>
+  </patternset>
+  
+  <patternset id="excluded.from.compilation.auditserver">
+    <patternset refid="excluded.from.module.auditserver"/>
+  </patternset>
+  
+  <path id="auditserver.module.sourcepath">
+    <dirset dir="${module.auditserver.basedir}">
+      <include name="src"/>
+    </dirset>
+  </path>
+  
+  
+  <target name="compile.module.auditserver" depends="compile.module.auditserver.production,compile.module.auditserver.tests" description="Compile module AuditServer"/>
+  
+  <target name="compile.module.auditserver.production" description="Compile module AuditServer; production classes">
+    <mkdir dir="${auditserver.output.dir}"/>
+    <javac destdir="${auditserver.output.dir}" debug="${compiler.debug}" nowarn="${compiler.generate.no.warnings}" memorymaximumsize="${compiler.max.memory}" fork="true">
+      <compilerarg line="${compiler.args.auditserver}"/>
+      <bootclasspath refid="auditserver.module.bootclasspath"/>
+      <classpath refid="auditserver.module.production.classpath"/>
+      <src refid="auditserver.module.sourcepath"/>
+      <patternset refid="excluded.from.compilation.auditserver"/>
+    </javac>
+    
+    <copy todir="${auditserver.output.dir}">
+      <fileset dir="${module.auditserver.basedir}/src">
+        <patternset refid="compiler.resources"/>
+        <type type="file"/>
+      </fileset>
+    </copy>
+  </target>
+  
+  <target name="compile.module.auditserver.tests" depends="compile.module.auditserver.production" description="compile module AuditServer; test classes" unless="skip.tests"/>
+  
+  <target name="clean.module.auditserver" description="cleanup module">
+    <delete dir="${auditserver.output.dir}"/>
+    <delete dir="${auditserver.testoutput.dir}"/>
+  </target>
+  
+  <target name="init" description="Build initialization">
+    <!-- Perform any build initialization in this target -->
+  </target>
+  
+  <target name="clean" depends="clean.module.auditserver" description="cleanup all"/>
+  
+  <target name="build.modules" depends="init, clean, compile.module.auditserver" description="build all modules"/>
+  
+  <target name="all" depends="build.modules" description="build all"/>
+</project>

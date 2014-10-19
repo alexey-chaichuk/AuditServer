@@ -1,0 +1,9 @@
+<component name="ArtifactManager">
+  <artifact type="jar" build-on-make="true" name="AuditServer:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/AuditServer_jar</output-path>
+    <root id="archive" name="AuditServer.jar">
+      <element id="module-output" name="AuditServer" />
+      <element id="library" level="project" name="mysql:mysql-connector-java:5.1.33" />
+    </root>
+  </artifact>
+</component>
