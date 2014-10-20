@@ -17,24 +17,60 @@ using namespace std;
 #define DST_PORT 8889
 #define DST_IPADDR "192.168.0.155"
 
-int	enum_installed_applications(BOOL IsUpdates, BOOL IsUserKey);
-int enum_user_info();
+int	enum_installed_applications(const char* server_addr, int server_port, BOOL IsUpdates, BOOL IsUserKey);
+int enum_user_info(const char* server_addr, int server_port);
 int wide_to_utf8(TCHAR *src, char *dst, int dst_size);
 int escape_xml_string(TCHAR *src, int src_size, TCHAR *dst, int dst_size);
 
 int _tmain(int argc, _TCHAR* argv[])
 {
-	if((argc > 1)&&(wcscmp(argv[1],TEXT("-u"))==0)) {
-		cout << "will scan users" << endl;
-		enum_user_info();
+	bool scan_user = false;
+	//wchar_t* wserver_addr = NULL;
+	char* server_addr = NULL;
+	int server_port = 0;
+	size_t str_size = 0;
+
+	for(int i=1; i<argc; ++i) {
+		if(argv[i][0] == '-' && wcslen(argv[i]) > 2) {			
+			switch(argv[i][1]) {
+			case 'u':
+				scan_user = true;
+				break;
+			case 'a':
+				str_size = wcslen(argv[i]+2);
+				if(str_size > 0) {
+					//wserver_addr = new wchar_t[str_size+1];
+					//wcscpy_s(wserver_addr, str_size+1, argv[i]+2);
+					server_addr = new char[str_size+1];
+					wcstombs(server_addr, argv[i]+2, str_size+1);
+				}
+				break;
+			case 'p':
+				str_size = wcslen(argv[i]+2);
+				if(str_size > 0) {
+					server_port = _wtoi(argv[i]+2);
+				}
+			}
+		}
+	}
+
+	if((server_addr == NULL)||(server_port <= 0)) {
+		wcout << "Usage: " << argv[0] << " [-u] -aXXX.XXX.XXX.XXX -pXXXX" << endl;
+		return -1;
+	}
+
+	cout << "server " << server_addr << ":" << server_port << endl;
+	if(scan_user == true) {
+		cout << "will scan user" << endl;
+		enum_user_info(server_addr, server_port);
 	} else {
-		enum_installed_applications(false, false);	
+		enum_installed_applications(server_addr, server_port, false, false);
 	}
 
 	return 0;
 }
 
-int enum_user_info()
+int enum_user_info(const char* server_addr, int server_port)
 {
 	SOCKET s;
 	sockaddr_in addr;
@@ -60,12 +96,12 @@ int enum_user_info()
 	s = socket(AF_INET, SOCK_STREAM, 0);
 	memset(&addr, 0, sizeof(addr));
 	addr.sin_family = AF_INET;
-	addr.sin_port = htons(DST_PORT);
-	addr.sin_addr.S_un.S_addr = inet_addr(DST_IPADDR);
+	addr.sin_port = htons(server_port);
+	addr.sin_addr.S_un.S_addr = inet_addr(server_addr);
 
 	if(connect(s, (SOCKADDR*) &addr, sizeof(addr)) == SOCKET_ERROR) {
 		int error = GetLastError();
-		printf("ERROR CONNECT: %s (%x)\n", strerror(error), error);
+		printf("ERROR CONNECT: %s (%x)\n", strerror_s(buf, BUF_SIZE, error), error);
 		//system("pause");
 		return -1;
 	}
@@ -86,7 +122,7 @@ int enum_user_info()
 	if(GetUserNameEx(NameUserPrincipal, (TCHAR*)login, &login_size) == 0) { 
 	//if(GetUserName((TCHAR*)login, &login_size) == 0) {
 		int error = GetLastError();
-		printf("ERROR GetUSerName: %s (%x)\n", strerror(error), error);
+		printf("ERROR GetUSerName: %s (%x)\n", strerror_s(buf, BUF_SIZE, error), error);
 		//system("pause");	
 		return -1;
 	}
@@ -117,7 +153,7 @@ int enum_user_info()
 	return 0;
 }
 
-int enum_installed_applications(BOOL IsUpdates, BOOL IsUserKey)
+int enum_installed_applications(const char* server_addr, int server_port, BOOL IsUpdates, BOOL IsUserKey)
 {
 	DWORD dwSize = MAX_PATH, dwType, dwValue;
 	bool bIsSystemComponent, bIsUpdate;
@@ -155,12 +191,12 @@ int enum_installed_applications(BOOL IsUpdates, BOOL IsUserKey)
 	s = socket(AF_INET, SOCK_STREAM, 0);
 	memset(&addr, 0, sizeof(addr));
 	addr.sin_family = AF_INET;
-	addr.sin_port = htons(DST_PORT);
-	addr.sin_addr.S_un.S_addr = inet_addr(DST_IPADDR);
+	addr.sin_port = htons(server_port);
+	addr.sin_addr.S_un.S_addr = inet_addr(server_addr);
 
 	if(connect(s, (SOCKADDR*) &addr, sizeof(addr)) == SOCKET_ERROR) {
 		int error = GetLastError();
-		printf("ERROR CONNECT: %s (%x)\n", strerror(error), error);
+		printf("ERROR CONNECT: %s (%x)\n", strerror_s(buf, BUF_SIZE, error), error);
 		//system("pause");
 		return -1;
 	}
@@ -186,54 +222,51 @@ int enum_installed_applications(BOOL IsUpdates, BOOL IsUserKey)
 	computer_domain_utf8_count = wide_to_utf8(computer_domain, buf, sizeof(buf));
 	send(s, buf, computer_domain_utf8_count, 0);
 	send(s, "\">", 2, 0);
-
-	if (RegOpenKey(hRootKey, _T("Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall"), &hKey) != ERROR_SUCCESS)
-	{
-		return -1;
-	}
-
-	while (RegEnumKeyEx(hKey, ItemIndex, szKeyName, &dwSize, NULL, NULL, NULL, NULL) == ERROR_SUCCESS)
-	{		
-		if (RegOpenKey(hKey, szKeyName, &hAppKey) == ERROR_SUCCESS)
-		{
-			dwType = REG_DWORD;
-			dwSize = sizeof(DWORD);
-
-			if (RegQueryValueEx(hAppKey, _T("SystemComponent"), NULL, &dwType, (LPBYTE)&dwValue, &dwSize) == ERROR_SUCCESS)
-			{
-				bIsSystemComponent = (dwValue == 0x1);
-			}
-			else
-			{
-				bIsSystemComponent = FALSE;
-			}
-
-			dwType = REG_SZ;
-			dwSize = MAX_PATH;
-			bIsUpdate = (RegQueryValueEx(hAppKey, _T("ParentKeyName"), NULL, &dwType, (LPBYTE)szParentKeyName, &dwSize) == ERROR_SUCCESS);
-
-			dwSize = MAX_PATH;
-			if (RegQueryValueEx(hAppKey, _T("DisplayName"), NULL, &dwType, (LPBYTE)szDisplayName, &dwSize) == ERROR_SUCCESS)
-			{
-				if (!bIsSystemComponent)
-				{
-					if ((IsUpdates == FALSE && !bIsUpdate) || /* Applications only */
-						(IsUpdates == TRUE && bIsUpdate)) /* Updates only */
-					{
-						send(s, xml_product_start, strlen(xml_product_start), 0);
-						send(s, xml_product_name, strlen(xml_product_name), 0);
-						escape_xml_string(szDisplayName, wcslen(szDisplayName), szDisplayNameEsc, BUF_SIZE);
-						int name_len = wide_to_utf8(szDisplayNameEsc, buf, sizeof(buf));
-						send(s, buf, name_len, 0);						
-						send(s, "\"/>", 3, 0);
-					}
-				}
-			}
-			RegCloseKey(hAppKey);
+	
+	wchar_t* reg_uninstall_path[] = {_T("Software\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall"),
+								     _T("Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall")};
+	for(int i=0; i<2; ++i) {
+		if (RegOpenKey(hRootKey, reg_uninstall_path[i], &hKey) != ERROR_SUCCESS) {
+			continue;
 		}
 
-		dwSize = MAX_PATH;
-		++ItemIndex;
+		while (RegEnumKeyEx(hKey, ItemIndex, szKeyName, &dwSize, NULL, NULL, NULL, NULL) == ERROR_SUCCESS) {		
+			if (RegOpenKey(hKey, szKeyName, &hAppKey) == ERROR_SUCCESS) {
+				dwType = REG_DWORD;
+				dwSize = sizeof(DWORD);
+
+				if (RegQueryValueEx(hAppKey, _T("SystemComponent"), NULL, &dwType, (LPBYTE)&dwValue, &dwSize) == ERROR_SUCCESS) {
+					bIsSystemComponent = (dwValue == 0x1);
+				}
+				else {
+					bIsSystemComponent = FALSE;
+				}
+
+				dwType = REG_SZ;
+				dwSize = MAX_PATH;
+				bIsUpdate = (RegQueryValueEx(hAppKey, _T("ParentKeyName"), NULL, &dwType, (LPBYTE)szParentKeyName, &dwSize) == ERROR_SUCCESS);
+
+				dwSize = MAX_PATH;
+				if (RegQueryValueEx(hAppKey, _T("DisplayName"), NULL, &dwType, (LPBYTE)szDisplayName, &dwSize) == ERROR_SUCCESS) {
+					if (!bIsSystemComponent) {
+						if ((IsUpdates == FALSE && !bIsUpdate) || /* Applications only */
+							(IsUpdates == TRUE && bIsUpdate)) /* Updates only */
+						{
+							send(s, xml_product_start, strlen(xml_product_start), 0);
+							send(s, xml_product_name, strlen(xml_product_name), 0);
+							escape_xml_string(szDisplayName, wcslen(szDisplayName), szDisplayNameEsc, BUF_SIZE);
+							int name_len = wide_to_utf8(szDisplayNameEsc, buf, sizeof(buf));
+							send(s, buf, name_len, 0);						
+							send(s, "\"/>", 3, 0);
+						}
+					}
+				}	
+				RegCloseKey(hAppKey);
+			}
+
+			dwSize = MAX_PATH;
+			++ItemIndex;
+		}
 	}
 
 	send(s, xml_computer_end, strlen(xml_computer_end), 0);
