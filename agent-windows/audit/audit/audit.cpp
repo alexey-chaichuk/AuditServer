@@ -29,7 +29,7 @@ int _tmain(int argc, _TCHAR* argv[])
 	size_t str_size = 0;
 
 	for(int i=1; i<argc; ++i) {
-		if(argv[i][0] == '-' && wcslen(argv[i]) > 2) {			
+		if(argv[i][0] == '-' && wcslen(argv[i]) >= 2) {			
 			switch(argv[i][1]) {
 			case 'u':
 				scan_user = true;
@@ -37,8 +37,6 @@ int _tmain(int argc, _TCHAR* argv[])
 			case 'a':
 				str_size = wcslen(argv[i]+2);
 				if(str_size > 0) {
-					//wserver_addr = new wchar_t[str_size+1];
-					//wcscpy_s(wserver_addr, str_size+1, argv[i]+2);
 					server_addr = new char[str_size+1];
 					wcstombs(server_addr, argv[i]+2, str_size+1);
 				}
@@ -48,6 +46,7 @@ int _tmain(int argc, _TCHAR* argv[])
 				if(str_size > 0) {
 					server_port = _wtoi(argv[i]+2);
 				}
+				break;
 			}
 		}
 	}
@@ -99,7 +98,7 @@ int enum_user_info(const char* server_addr, int server_port)
 
 	if(connect(s, (SOCKADDR*) &addr, sizeof(addr)) == SOCKET_ERROR) {
 		int error = GetLastError();
-		printf("ERROR CONNECT: %s (%x)\n", strerror_s(buf, BUF_SIZE, error), error);
+		printf("ERROR CONNECT: %s (%x)\n", strerror(error), error);
 		//system("pause");
 		return -1;
 	}
@@ -120,7 +119,7 @@ int enum_user_info(const char* server_addr, int server_port)
 	if(GetUserNameEx(NameUserPrincipal, (TCHAR*)login, &login_size) == 0) { 
 	//if(GetUserName((TCHAR*)login, &login_size) == 0) {
 		int error = GetLastError();
-		printf("ERROR GetUSerName: %s (%x)\n", strerror_s(buf, BUF_SIZE, error), error);
+		printf("ERROR GetUserName: %s (%x)\n", strerror(error), error);
 		//system("pause");	
 		return -1;
 	}
@@ -194,7 +193,7 @@ int enum_installed_applications(const char* server_addr, int server_port, BOOL I
 
 	if(connect(s, (SOCKADDR*) &addr, sizeof(addr)) == SOCKET_ERROR) {
 		int error = GetLastError();
-		printf("ERROR CONNECT: %s (%x)\n", strerror_s(buf, BUF_SIZE, error), error);
+		printf("ERROR CONNECT: %s (%x)\n", strerror(error), error);
 		//system("pause");
 		return -1;
 	}
