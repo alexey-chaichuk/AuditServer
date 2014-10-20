@@ -1,8 +1,10 @@
 package auditServer;
 
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.Properties;
 import java.util.concurrent.SynchronousQueue;
 
 /**
@@ -17,9 +19,23 @@ public class Server {
         SynchronousQueue<Computer> computersQueue = new SynchronousQueue<Computer>(true);
         SynchronousQueue<User> usersQueue = new SynchronousQueue<User>(true);
 
-        Thread tComputerDBWriter = new Thread(new ComputerDBWriter(computersQueue));
+        Properties configProp = new Properties();
+        String url = null;
+        String user = null;
+        String password = null;
+        try {
+            configProp.load(new FileInputStream("config.properties"));
+            url = configProp.getProperty("url");
+            user = configProp.getProperty("user");
+            password = configProp.getProperty("password");
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.exit(-1);
+        }
+
+        Thread tComputerDBWriter = new Thread(new ComputerDBWriter(computersQueue, url, user, password));
         tComputerDBWriter.start();
-        Thread tUserDBWriter = new Thread(new UserDBWriter(usersQueue));
+        Thread tUserDBWriter = new Thread(new UserDBWriter(usersQueue, url, user, password));
         tUserDBWriter.start();
 
         try {
