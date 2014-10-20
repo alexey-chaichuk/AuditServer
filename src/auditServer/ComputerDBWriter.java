@@ -1,6 +1,6 @@
 package auditServer;
 
-import java.net.ConnectException;
+
 import java.sql.*;
 import java.util.concurrent.SynchronousQueue;
 
@@ -13,14 +13,17 @@ import java.util.concurrent.SynchronousQueue;
 public class ComputerDBWriter implements Runnable {
     private SynchronousQueue<Computer> computersQueue;
     static final String driverClassName = "com.mysql.jdbc.Driver";
-    static final String url = "jdbc:mysql://localhost:3306/audit?characterSetResults=UTF-8&characterEncoding=UTF-8&useUnicode=yes";
-    static final String user = "audit";
-    static final String password = "audit";
 
-    public ComputerDBWriter(SynchronousQueue<Computer> computersQueue) {
+    private String url;
+    private String user;
+    private String password;
+
+    public ComputerDBWriter(SynchronousQueue<Computer> computersQueue, String url, String user, String password) {
         this.computersQueue = computersQueue;
+        this.url = url;
+        this.user = user;
+        this.password = password;
     }
-
 
     private Connection getConnection() throws SQLException {
         Connection conn = null;

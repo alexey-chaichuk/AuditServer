@@ -56,6 +56,13 @@
     <exclude name="**/?*.clj"/>
   </patternset>
   
+  
+  <!-- Project Libraries -->
+  
+  <path id="library.mysql:mysql-connector-java:5.1.33.classpath">
+    <pathelement location="${basedir}/lib/mysql-connector-java-5.1.33.jar"/>
+  </path>
+  
   <!-- Modules -->
   
   
@@ -74,19 +81,24 @@
     <!-- Paths to be included in compilation bootclasspath -->
   </path>
   
-  <path id="auditserver.module.production.classpath"/>
+  <path id="auditserver.module.production.classpath">
+    <path refid="library.mysql:mysql-connector-java:5.1.33.classpath"/>
+  </path>
   
   <path id="auditserver.runtime.production.module.classpath">
     <pathelement location="${auditserver.output.dir}"/>
+    <path refid="library.mysql:mysql-connector-java:5.1.33.classpath"/>
   </path>
   
   <path id="auditserver.module.classpath">
     <pathelement location="${auditserver.output.dir}"/>
+    <path refid="library.mysql:mysql-connector-java:5.1.33.classpath"/>
   </path>
   
   <path id="auditserver.runtime.module.classpath">
     <pathelement location="${auditserver.testoutput.dir}"/>
     <pathelement location="${auditserver.output.dir}"/>
+    <path refid="library.mysql:mysql-connector-java:5.1.33.classpath"/>
   </path>
   
   
@@ -140,5 +152,32 @@
   
   <target name="build.modules" depends="init, clean, compile.module.auditserver" description="build all modules"/>
   
-  <target name="all" depends="build.modules" description="build all"/>
+  <target name="init.artifacts">
+    <property name="artifacts.temp.dir" value="${basedir}/__artifacts_temp"/>
+    <property name="artifact.output.auditserver:jar" value="${basedir}/out/artifacts/AuditServer_jar"/>
+    <mkdir dir="${artifacts.temp.dir}"/>
+    <property name="temp.jar.path.AuditServer.jar" value="${artifacts.temp.dir}/AuditServer.jar"/>
+  </target>
+  
+  <target name="artifact.auditserver:jar" depends="init.artifacts, compile.module.auditserver" description="Build &#39;AuditServer:jar&#39; artifact">
+    <property name="artifact.temp.output.auditserver:jar" value="${artifacts.temp.dir}/AuditServer_jar"/>
+    <mkdir dir="${artifact.temp.output.auditserver:jar}"/>
+    <jar destfile="${temp.jar.path.AuditServer.jar}" duplicate="preserve" filesetmanifest="mergewithoutmain">
+      <zipfileset dir="${auditserver.output.dir}"/>
+      <zipfileset file="${basedir}/lib/mysql-connector-java-5.1.33.jar"/>
+    </jar>
+    <copy file="${temp.jar.path.AuditServer.jar}" tofile="${artifact.temp.output.auditserver:jar}/AuditServer.jar"/>
+  </target>
+  
+  <target name="build.all.artifacts" depends="artifact.auditserver:jar" description="Build all artifacts">
+    <mkdir dir="${artifact.output.auditserver:jar}"/>
+    <copy todir="${artifact.output.auditserver:jar}">
+      <fileset dir="${artifact.temp.output.auditserver:jar}"/>
+    </copy>
+    
+    <!-- Delete temporary files -->
+    <delete dir="${artifacts.temp.dir}"/>
+  </target>
+  
+  <target name="all" depends="build.modules, build.all.artifacts" description="build all"/>
 </project>

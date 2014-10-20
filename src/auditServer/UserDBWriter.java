@@ -12,13 +12,16 @@ import java.util.concurrent.SynchronousQueue;
 public class UserDBWriter implements Runnable {
     private SynchronousQueue<User> usersQueue;
     static final String driverClassName = "com.mysql.jdbc.Driver";
-    static final String url = "jdbc:mysql://localhost:3306/audit?characterSetResults=UTF-8&characterEncoding=UTF-8&useUnicode=yes";
-    static final String user = "audit";
-    static final String password = "audit";
 
+    private String url;
+    private String user;
+    private String password;
 
-    public UserDBWriter(SynchronousQueue<User> usersQueue) {
+    public UserDBWriter(SynchronousQueue<User> usersQueue, String url, String user, String password) {
         this.usersQueue = usersQueue;
+        this.url = url;
+        this.user = user;
+        this.password = password;
     }
 
     private Connection getConnection() throws SQLException {
