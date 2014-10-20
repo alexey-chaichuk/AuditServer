@@ -1,0 +1,20 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual C++ Express 2010
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "audit", "audit\audit.vcxproj", "{94F132CD-C271-4B79-81DC-9255AC563ED2}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{94F132CD-C271-4B79-81DC-9255AC563ED2}.Debug|Win32.ActiveCfg = Debug|Win32
+		{94F132CD-C271-4B79-81DC-9255AC563ED2}.Debug|Win32.Build.0 = Debug|Win32
+		{94F132CD-C271-4B79-81DC-9255AC563ED2}.Release|Win32.ActiveCfg = Release|Win32
+		{94F132CD-C271-4B79-81DC-9255AC563ED2}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
