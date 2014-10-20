@@ -14,8 +14,6 @@ using namespace std;
 #pragma comment(lib, "Secur32.lib")
 
 #define BUF_SIZE 32768
-#define DST_PORT 8889
-#define DST_IPADDR "192.168.0.155"
 
 int	enum_installed_applications(const char* server_addr, int server_port, BOOL IsUpdates, BOOL IsUserKey);
 int enum_user_info(const char* server_addr, int server_port);
