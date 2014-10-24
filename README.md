@@ -11,9 +11,10 @@
 3. add "config.properties" file in that directory with following content:
 
     ```
-    url = "jdbc:mysql://localhost:3306/audit?characterSetResults=UTF-8&characterEncoding=UTF-8&useUnicode=yes"
-    user = "username"
-    password = "password"
+    # IMPORTANT - do not use '"' symbols for strings
+    url = jdbc:mysql://localhost:3306/audit?characterSetResults=UTF-8&characterEncoding=UTF-8&useUnicode=yes
+    user = username
+    password = password
     ```
-    
+
 4. run "java -jar AuditServer.jar"

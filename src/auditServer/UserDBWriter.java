@@ -41,6 +41,7 @@ public class UserDBWriter implements Runnable {
         PreparedStatement ps1 = null;
         try {
             conn = getConnection();
+            if(conn == null) return;
             ps1 = conn.prepareStatement(sql1, Statement.RETURN_GENERATED_KEYS);
             ps1.setString(1, user.getComputerName());
             ps1.setString(2, user.getDomain());
@@ -56,12 +57,16 @@ public class UserDBWriter implements Runnable {
             e.printStackTrace();
         } finally {
             try {
-                ps1.close();
+                if (ps1 != null) {
+                    ps1.close();
+                }
             } catch (SQLException e) {
                 e.printStackTrace();
             }
             try {
-                conn.close();
+                if (conn != null) {
+                    conn.close();
+                }
             } catch (SQLException e) {
                 e.printStackTrace();
             }

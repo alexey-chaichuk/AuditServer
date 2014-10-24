@@ -46,6 +46,7 @@ public class ComputerDBWriter implements Runnable {
         PreparedStatement ps3 = null;
         try {
             conn = getConnection();
+            if(conn == null) return;
             ps1 = conn.prepareStatement(sql1, Statement.RETURN_GENERATED_KEYS);
             ps1.setString(1, computer.getIpAddress());
             ps1.setString(2, computer.getName());
@@ -82,14 +83,22 @@ public class ComputerDBWriter implements Runnable {
             e.printStackTrace();
         } finally {
             try {
-                ps1.close();
-                ps2.close();
-                ps3.close();
+                if (ps1 != null) {
+                    ps1.close();
+                }
+                if (ps2 != null) {
+                    ps2.close();
+                }
+                if (ps3 != null) {
+                    ps3.close();
+                }
             } catch (SQLException e) {
                 e.printStackTrace();
             }
             try {
-                conn.close();
+                if (conn != null) {
+                    conn.close();
+                }
             } catch (SQLException e) {
                 e.printStackTrace();
             }

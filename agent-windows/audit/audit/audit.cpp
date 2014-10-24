@@ -116,14 +116,15 @@ int enum_user_info(const char* server_addr, int server_port)
 	TCHAR login[1024];	
 	DWORD login_size = 1024;
 	int login_utf8_count;
-	if(GetUserNameEx(NameUserPrincipal, (TCHAR*)login, &login_size) == 0) { 
-	//if(GetUserName((TCHAR*)login, &login_size) == 0) {
+	if(GetUserNameEx(NameUserPrincipal, (TCHAR*)login, &login_size) == 0) { 	
 		int error = GetLastError();
-		printf("ERROR GetUserName: %s (%x)\n", strerror(error), error);
-		//system("pause");	
-		return -1;
+		printf("ERROR GetUserNameEx: %s (0x%x)\n", strerror(error), error);
+		if(GetUserName((TCHAR*)login, &login_size) == 0) {
+			printf("ERROR GetUserName: %s (0x%x)\n", strerror(error), error);
+			return -1;
+		}
 	}
-	cout << login << endl;
+	//cout << login << endl;
 
 	send(s, xml_header, strlen(xml_header), 0);
 	send(s, xml_user_start, strlen(xml_user_start), 0);	
