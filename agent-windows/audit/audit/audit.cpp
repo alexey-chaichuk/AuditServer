@@ -3,6 +3,7 @@
 
 #include "stdafx.h"
 #include <winsock2.h>
+#include <IPHlpApi.h>
 #include <windows.h>
 #include <iostream>
 
@@ -12,6 +13,7 @@
 using namespace std;
 #pragma comment(lib, "Ws2_32.lib")
 #pragma comment(lib, "Secur32.lib")
+#pragma comment(lib, "iphlpapi.lib")
 
 #define BUF_SIZE 32768
 
@@ -124,8 +126,7 @@ int enum_user_info(const char* server_addr, int server_port)
 			return -1;
 		}
 	}
-	//cout << login << endl;
-
+	
 	send(s, xml_header, strlen(xml_header), 0);
 	send(s, xml_user_start, strlen(xml_user_start), 0);	
 	send(s, xml_user_computer_name, strlen(xml_user_computer_name), 0);
@@ -209,6 +210,20 @@ int enum_installed_applications(const char* server_addr, int server_port, BOOL I
 
 	GetComputerNameEx(ComputerNamePhysicalNetBIOS, computer_name, &computer_name_count);
 	GetComputerNameEx(ComputerNamePhysicalDnsDomain, computer_domain, &computer_domain_count);
+
+	ULONG buflen = sizeof(IP_ADAPTER_INFO);
+	PIP_ADAPTER_INFO pAdapterInfo = (PIP_ADAPTER_INFO)malloc(buflen);
+
+	if(GetAdaptersInfo(pAdapterInfo, &buflen) == ERROR_BUFFER_OVERFLOW) {
+		free(pAdapterInfo);
+		pAdapterInfo = (PIP_ADAPTER_INFO)malloc(buflen);		
+	}
+	if(GetAdaptersInfo(pAdapterInfo, &buflen) == NO_ERROR) {
+		for(PIP_ADAPTER_INFO pAdapter = pAdapterInfo; pAdapter; pAdapter = pAdapter->Next) {
+			cout << pAdapter->Description << "[" << pAdapter->IpAddressList.IpAddress.String << "]" << endl;
+		}
+	}
+
 
 	send(s, xml_header, strlen(xml_header), 0);
 	send(s, xml_computer_start, strlen(xml_computer_start), 0);	
