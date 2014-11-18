@@ -172,6 +172,14 @@ int enum_installed_applications(const char* server_addr, int server_port, BOOL I
 	const char xml_product_start[] = "<product";
 	const char xml_product_name[] = " name=\"";
 
+	const char xml_netadapter_start[] = "<netAdapter";
+	const char xml_netadapter_end[] = " />";
+	const char xml_netadapter_type[] = " type=";
+	const char xml_netadapter_isdhcp[] = " isdhcp=";
+	const char xml_netadapter_mac[] = " mac=\"";
+	const char xml_netadapter_ip[] = " ip=\"";
+	const char xml_netadapter_gateway[] = " gateway=\"";
+
 	hRootKey = IsUserKey ? HKEY_CURRENT_USER : HKEY_LOCAL_MACHINE;
 
 	SOCKET s;
@@ -211,7 +219,19 @@ int enum_installed_applications(const char* server_addr, int server_port, BOOL I
 	GetComputerNameEx(ComputerNamePhysicalNetBIOS, computer_name, &computer_name_count);
 	GetComputerNameEx(ComputerNamePhysicalDnsDomain, computer_domain, &computer_domain_count);
 
-	ULONG buflen = sizeof(IP_ADAPTER_INFO);
+    send(s, xml_header, strlen(xml_header), 0);
+	send(s, xml_computer_start, strlen(xml_computer_start), 0);
+	send(s, xml_computer_name, strlen(xml_computer_name), 0);
+	computer_name_utf8_count = wide_to_utf8(computer_name, buf, sizeof(buf));
+	send(s, buf, computer_name_utf8_count, 0);
+	send(s, "\"", 1, 0);
+	send(s, xml_computer_domain, strlen(xml_computer_domain), 0);
+	computer_domain_utf8_count = wide_to_utf8(computer_domain, buf, sizeof(buf));
+	send(s, buf, computer_domain_utf8_count, 0);
+	send(s, "\">", 2, 0);
+
+
+    ULONG buflen = sizeof(IP_ADAPTER_INFO);
 	PIP_ADAPTER_INFO pAdapterInfo = (PIP_ADAPTER_INFO)malloc(buflen);
 
 	if(GetAdaptersInfo(pAdapterInfo, &buflen) == ERROR_BUFFER_OVERFLOW) {
@@ -221,21 +241,36 @@ int enum_installed_applications(const char* server_addr, int server_port, BOOL I
 	if(GetAdaptersInfo(pAdapterInfo, &buflen) == NO_ERROR) {
 		for(PIP_ADAPTER_INFO pAdapter = pAdapterInfo; pAdapter; pAdapter = pAdapter->Next) {
 			cout << pAdapter->Description << "[" << pAdapter->IpAddressList.IpAddress.String << "]" << endl;
+			send(s, xml_netadapter_start, strlen(xml_netadapter_start), 0);
+
+			send(s, xml_netadapter_type, strlen(xml_netadapter_type), 0)
+            sprintf(buf, "%d", pAdapter->Type);
+            send(s, buf, strlen(buf), 0);
+
+            send(s, xml_netadapter_isdhcp, strlen(xml_netadapter_isdhcp), 0)
+            sprintf(buf, "%d", pAdapter->DhcpEnabled);
+            send(s, buf, strlen(buf), 0);
+
+            send(s, xml_netadapter_ip, strlen(xml_netadapter_ip), 0)
+            sprintf(buf, "%s\"", pAdapter->IpAddressList.IpAddress.String);
+            send(s, buf, strlen(buf), 0);
+
+            send(s, xml_netadapter_gateway, strlen(xml_netadapter_gateway), 0)
+            sprintf(buf, "%s\"", pAdapter->GatewayList.IpAddress.String);
+            send(s, buf, strlen(buf), 0);
+
+            send(s, xml_netadapter_mac, strlen(xml_netadapter_mac), 0)
+            sprintf(buf, "%02X:%02X:%02X:%02X:%02X:%02X\"",
+                pAdapterInfo->Address[0], pAdapterInfo->Address[1],
+                pAdapterInfo->Address[2], pAdapterInfo->Address[3],
+                pAdapterInfo->Address[4], pAdapterInfo->Address[5]);
+            send(s, buf, strlen(buf));
+
+            send(s, xml_netadapter_end, strlen(xml_netadapter_end), 0);
 		}
 	}
 
 
-	send(s, xml_header, strlen(xml_header), 0);
-	send(s, xml_computer_start, strlen(xml_computer_start), 0);	
-	send(s, xml_computer_name, strlen(xml_computer_name), 0);
-	computer_name_utf8_count = wide_to_utf8(computer_name, buf, sizeof(buf));
-	send(s, buf, computer_name_utf8_count, 0);
-	send(s, "\"", 1, 0);
-	send(s, xml_computer_domain, strlen(xml_computer_domain), 0);
-	computer_domain_utf8_count = wide_to_utf8(computer_domain, buf, sizeof(buf));
-	send(s, buf, computer_domain_utf8_count, 0);
-	send(s, "\">", 2, 0);
-	
 	wchar_t* reg_uninstall_path[] = {_T("Software\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall"),
 								     _T("Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall")};
 	for(int i=0; i<2; ++i) {
