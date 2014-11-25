@@ -243,28 +243,28 @@ int enum_installed_applications(const char* server_addr, int server_port, BOOL I
 			cout << pAdapter->Description << "[" << pAdapter->IpAddressList.IpAddress.String << "]" << endl;
 			send(s, xml_netadapter_start, strlen(xml_netadapter_start), 0);
 
-			send(s, xml_netadapter_type, strlen(xml_netadapter_type), 0)
+			send(s, xml_netadapter_type, strlen(xml_netadapter_type), 0);
             sprintf(buf, "%d", pAdapter->Type);
             send(s, buf, strlen(buf), 0);
 
-            send(s, xml_netadapter_isdhcp, strlen(xml_netadapter_isdhcp), 0)
+            send(s, xml_netadapter_isdhcp, strlen(xml_netadapter_isdhcp), 0);
             sprintf(buf, "%d", pAdapter->DhcpEnabled);
             send(s, buf, strlen(buf), 0);
 
-            send(s, xml_netadapter_ip, strlen(xml_netadapter_ip), 0)
+            send(s, xml_netadapter_ip, strlen(xml_netadapter_ip), 0);
             sprintf(buf, "%s\"", pAdapter->IpAddressList.IpAddress.String);
             send(s, buf, strlen(buf), 0);
 
-            send(s, xml_netadapter_gateway, strlen(xml_netadapter_gateway), 0)
+            send(s, xml_netadapter_gateway, strlen(xml_netadapter_gateway), 0);
             sprintf(buf, "%s\"", pAdapter->GatewayList.IpAddress.String);
             send(s, buf, strlen(buf), 0);
 
-            send(s, xml_netadapter_mac, strlen(xml_netadapter_mac), 0)
+            send(s, xml_netadapter_mac, strlen(xml_netadapter_mac), 0);
             sprintf(buf, "%02X:%02X:%02X:%02X:%02X:%02X\"",
                 pAdapterInfo->Address[0], pAdapterInfo->Address[1],
                 pAdapterInfo->Address[2], pAdapterInfo->Address[3],
                 pAdapterInfo->Address[4], pAdapterInfo->Address[5]);
-            send(s, buf, strlen(buf));
+            send(s, buf, strlen(buf), 0);
 
             send(s, xml_netadapter_end, strlen(xml_netadapter_end), 0);
 		}
