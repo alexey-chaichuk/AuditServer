@@ -174,8 +174,8 @@ int enum_installed_applications(const char* server_addr, int server_port, BOOL I
 
 	const char xml_netadapter_start[] = "<netAdapter";
 	const char xml_netadapter_end[] = " />";
-	const char xml_netadapter_type[] = " type=";
-	const char xml_netadapter_isdhcp[] = " isdhcp=";
+	const char xml_netadapter_type[] = " type=\"";
+	const char xml_netadapter_isdhcp[] = " isdhcp=\"";
 	const char xml_netadapter_mac[] = " mac=\"";
 	const char xml_netadapter_ip[] = " ip=\"";
 	const char xml_netadapter_gateway[] = " gateway=\"";
@@ -244,11 +244,11 @@ int enum_installed_applications(const char* server_addr, int server_port, BOOL I
 			send(s, xml_netadapter_start, strlen(xml_netadapter_start), 0);
 
 			send(s, xml_netadapter_type, strlen(xml_netadapter_type), 0);
-            sprintf(buf, "%d", pAdapter->Type);
+            sprintf(buf, "%d\"", pAdapter->Type);
             send(s, buf, strlen(buf), 0);
 
             send(s, xml_netadapter_isdhcp, strlen(xml_netadapter_isdhcp), 0);
-            sprintf(buf, "%d", pAdapter->DhcpEnabled);
+            sprintf(buf, "%d\"", pAdapter->DhcpEnabled);
             send(s, buf, strlen(buf), 0);
 
             send(s, xml_netadapter_ip, strlen(xml_netadapter_ip), 0);
