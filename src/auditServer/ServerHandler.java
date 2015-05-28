@@ -37,12 +37,12 @@ public class ServerHandler implements Runnable {
             User u = null;
             boolean eok = false;
 
-//            Scanner in = new Scanner(incoming.getInputStream());
-//            while(in.hasNextLine()) {
-//                System.out.println(in.nextLine());
-//            }
+            //Scanner in = new Scanner(incoming.getInputStream());
+            //while(in.hasNextLine()) {
+            //    System.out.println(in.nextLine());
+            //}
 
-            System.out.println("Got connection from " + incoming.getInetAddress().getHostAddress());
+            System.out.println(new java.util.Date().toString() + " - Got connection from " + incoming.getInetAddress().getHostAddress());
 
             XMLInputFactory factory = XMLInputFactory.newInstance();
             try {

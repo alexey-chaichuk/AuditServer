@@ -111,7 +111,7 @@ public class ComputerDBWriter implements Runnable {
         while(true) {
             try {
                 Computer computer = computersQueue.take();
-                System.out.println("!!! got new computer: " + computer);
+                System.out.println(new java.util.Date().toString() + " !!! got new computer: " + computer);
                 //for(Product p : computer.getProducts()) {
                 //    System.out.println(p);
                 //}

@@ -78,7 +78,7 @@ public class UserDBWriter implements Runnable {
         while(true) {
             try {
                 User user = usersQueue.take();
-                System.out.println("!!! got new user: " + user);
+                System.out.println(new java.util.Date().toString() + " !!! got new user: " + user);
                 updateUser(user);
             } catch (InterruptedException e) {
                 e.printStackTrace();

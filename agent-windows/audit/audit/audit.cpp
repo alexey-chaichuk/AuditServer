@@ -10,6 +10,7 @@
 #define SECURITY_WIN32
 #include <Security.h>
 
+
 using namespace std;
 #pragma comment(lib, "Ws2_32.lib")
 #pragma comment(lib, "Secur32.lib")
@@ -126,7 +127,7 @@ int enum_user_info(const char* server_addr, int server_port)
 			return -1;
 		}
 	}
-	
+
 	send(s, xml_header, strlen(xml_header), 0);
 	send(s, xml_user_start, strlen(xml_user_start), 0);	
 	send(s, xml_user_computer_name, strlen(xml_user_computer_name), 0);
@@ -156,6 +157,8 @@ int enum_installed_applications(const char* server_addr, int server_port, BOOL I
 {
 	DWORD dwSize = MAX_PATH, dwType, dwValue;
 	bool bIsSystemComponent, bIsUpdate;
+	TCHAR szProcessorName[BUF_SIZE];
+	TCHAR szProcessorNameEsc[BUF_SIZE];
 	TCHAR szParentKeyName[MAX_PATH];
 	TCHAR szDisplayName[BUF_SIZE];
 	TCHAR szDisplayNameEsc[BUF_SIZE];
@@ -169,6 +172,9 @@ int enum_installed_applications(const char* server_addr, int server_port, BOOL I
 	const char xml_computer_osversion[] = " OSVersion=\"";
 	const char xml_computer_domain[] = " Domain=\"";
 	const char xml_computer_end[] = "</computer>";
+    const char xml_computer_processor[] = " Processor=\"";
+	const char xml_computer_ram[] = " RAM=";
+
 	const char xml_product_start[] = "<product";
 	const char xml_product_name[] = " name=\"";
 
@@ -179,6 +185,7 @@ int enum_installed_applications(const char* server_addr, int server_port, BOOL I
 	const char xml_netadapter_mac[] = " mac=\"";
 	const char xml_netadapter_ip[] = " ip=\"";
 	const char xml_netadapter_gateway[] = " gateway=\"";
+
 
 	hRootKey = IsUserKey ? HKEY_CURRENT_USER : HKEY_LOCAL_MACHINE;
 
@@ -219,6 +226,7 @@ int enum_installed_applications(const char* server_addr, int server_port, BOOL I
 	GetComputerNameEx(ComputerNamePhysicalNetBIOS, computer_name, &computer_name_count);
 	GetComputerNameEx(ComputerNamePhysicalDnsDomain, computer_domain, &computer_domain_count);
 
+	// <computer>
     send(s, xml_header, strlen(xml_header), 0);
 	send(s, xml_computer_start, strlen(xml_computer_start), 0);
 	send(s, xml_computer_name, strlen(xml_computer_name), 0);
@@ -228,8 +236,46 @@ int enum_installed_applications(const char* server_addr, int server_port, BOOL I
 	send(s, xml_computer_domain, strlen(xml_computer_domain), 0);
 	computer_domain_utf8_count = wide_to_utf8(computer_domain, buf, sizeof(buf));
 	send(s, buf, computer_domain_utf8_count, 0);
-	send(s, "\">", 2, 0);
+	send(s, "\"", 1, 0);
 
+	SYSTEM_INFO sysinfo;
+    GetSystemInfo(&sysinfo);
+    wchar_t* reg_hwdesc_path = _T("Hardware\\Description\\System\\CentralProcessor\\0");
+	if (RegOpenKey(HKEY_LOCAL_MACHINE, reg_hwdesc_path, &hKey) == ERROR_SUCCESS) {
+	    dwSize = MAX_PATH;
+	    if (RegQueryValueEx(hKey, _T("ProcessorNameString"), NULL, &dwType, (LPBYTE)szProcessorName, &dwSize) == ERROR_SUCCESS) {
+            send(s, xml_computer_processor, strlen(xml_computer_processor), 0);
+            escape_xml_string(szProcessorName, wcslen(szProcessorName), szProcessorNameEsc, BUF_SIZE);
+            int name_len = wide_to_utf8(szProcessorNameEsc, buf, sizeof(buf));
+            send(s, buf, name_len, 0);
+            name_len = sprintf(buf, " (%u cores)", sysinfo.dwNumberOfProcessors);
+            send(s, buf, name_len, 0);
+            send(s, "\"", 1, 0);
+	    }
+	    RegCloseKey(hKey);
+	}
+
+	MEMORYSTATUSEX memstat;
+	memstat.dwLength = sizeof(memstat);
+	if (GlobalMemoryStatusEx(&memstat) != 0) {
+		send(s, xml_computer_ram, strlen(xml_computer_ram), 0);
+		sprintf(buf, "\"%d\"", memstat.ullTotalPhys/1024);
+		send(s, buf, strlen(buf), 0);
+	}
+
+	OSVERSIONINFO osvi;
+	ZeroMemory(&osvi, sizeof(OSVERSIONINFO));
+	osvi.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
+	if (GetVersionEx(&osvi) != 0) {
+		send(s, xml_computer_osversion, strlen(xml_computer_osversion), 0);
+		char versionSP[BUF_SIZE];
+		CharToOem(osvi.szCSDVersion, versionSP);
+		sprintf(buf, "Windows %d.%d.%d, %s\"", osvi.dwMajorVersion, osvi.dwMinorVersion, osvi.dwBuildNumber, versionSP);
+		send(s, buf, strlen(buf), 0);
+	}
+
+	send(s, ">", 1, 0);
+	// </computer>
 
     ULONG buflen = sizeof(IP_ADAPTER_INFO);
 	PIP_ADAPTER_INFO pAdapterInfo = (PIP_ADAPTER_INFO)malloc(buflen);
@@ -244,11 +290,11 @@ int enum_installed_applications(const char* server_addr, int server_port, BOOL I
 			send(s, xml_netadapter_start, strlen(xml_netadapter_start), 0);
 
 			send(s, xml_netadapter_type, strlen(xml_netadapter_type), 0);
-            sprintf(buf, "%d", pAdapter->Type);
+            sprintf(buf, "\"%d\"", pAdapter->Type);
             send(s, buf, strlen(buf), 0);
 
             send(s, xml_netadapter_isdhcp, strlen(xml_netadapter_isdhcp), 0);
-            sprintf(buf, "%d", pAdapter->DhcpEnabled);
+            sprintf(buf, "\"%d\"", pAdapter->DhcpEnabled);
             send(s, buf, strlen(buf), 0);
 
             send(s, xml_netadapter_ip, strlen(xml_netadapter_ip), 0);
@@ -315,11 +361,11 @@ int enum_installed_applications(const char* server_addr, int server_port, BOOL I
 			dwSize = MAX_PATH;
 			++ItemIndex;
 		}
+		RegCloseKey(hKey);
 	}
 
 	send(s, xml_computer_end, strlen(xml_computer_end), 0);
 
-	RegCloseKey(hKey);
 	closesocket(s);
 	WSACleanup();
 
