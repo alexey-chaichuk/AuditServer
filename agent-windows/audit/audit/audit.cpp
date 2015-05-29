@@ -22,6 +22,7 @@ int	enum_installed_applications(const char* server_addr, int server_port, BOOL I
 int enum_user_info(const char* server_addr, int server_port);
 int wide_to_utf8(TCHAR *src, char *dst, int dst_size);
 int escape_xml_string(TCHAR *src, int src_size, TCHAR *dst, int dst_size);
+int remove_extra_spaces(char* buf);
 
 int _tmain(int argc, _TCHAR* argv[])
 {
@@ -247,6 +248,7 @@ int enum_installed_applications(const char* server_addr, int server_port, BOOL I
             send(s, xml_computer_processor, strlen(xml_computer_processor), 0);
             escape_xml_string(szProcessorName, wcslen(szProcessorName), szProcessorNameEsc, BUF_SIZE);
             int name_len = wide_to_utf8(szProcessorNameEsc, buf, sizeof(buf));
+			name_len = remove_extra_spaces(buf);
             send(s, buf, name_len, 0);
             name_len = sprintf(buf, " (%u cores)", sysinfo.dwNumberOfProcessors);
             send(s, buf, name_len, 0);
@@ -412,5 +414,34 @@ int escape_xml_string(TCHAR *src, int src_size, TCHAR *dst, int dst_size) {
 		}
 	}
 	dst[j] = _T('\0');
+	return j;
+}
+
+int remove_extra_spaces(char* buf) 
+{
+	int i = 0;
+	int j = 0;
+	int blanks = 0;
+	bool started = false;
+	printf("%s\n", buf);	
+	while(buf[i] != '\0') {
+		if((buf[i] == ' ') || (buf[i] == '\t')) {
+			if(started) {
+				blanks = 1;
+			} 			
+		} else {
+			started = true;
+			if(blanks != 0) {
+				buf[j] = ' ';
+				j++;
+				blanks = 0;
+			}
+			buf[j] = buf[i];
+			j++;
+		}
+		i++;
+	}
+	buf[j] = '\0';
+	printf("%s\n", buf);		
 	return j;
 }
