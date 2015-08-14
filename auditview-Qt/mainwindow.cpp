@@ -17,6 +17,10 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->setupUi(this);
     softwareDetailsWindow = 0;
     netAdapterWindow = 0;
+    softwareFindWindow = 0;
+    QDateTime date_end = QDateTime::currentDateTime();
+    ui->date_end->setDateTime(date_end.addDays(+1));
+    ui->date_beg->setDateTime(date_end.addDays(-8));
 }
 
 MainWindow::~MainWindow()
@@ -52,11 +56,12 @@ void MainWindow::on_btnOpen_clicked()
                         ") mo "
                         "JOIN computers mi "
                         "ON mi.id = mo.mid "
-                        "LEFT JOIN ( "
+                        "RIGHT JOIN ( "
                             "SELECT ui.* "
                             "FROM ( "
                                 "SELECT MAX(id) AS mid "
                                 "FROM users "
+                                "WHERE DATE(loggedin) BETWEEN ? AND ?"
                                 "GROUP BY computername "
                             ") uo "
                             "JOIN users ui "
@@ -66,6 +71,8 @@ void MainWindow::on_btnOpen_clicked()
                         "ORDER BY uu.loggedin";
 
     query.prepare(strQuery);
+    query.bindValue(0, ui->date_beg->dateTime().toString("yyyy-MM-dd hh:mm:ss"));
+    query.bindValue(1, ui->date_end->dateTime().toString("yyyy-MM-dd hh:mm:ss"));
     if(!query.exec()) {
         qDebug() << "query.exec failed";
         qDebug() << query.lastError();
@@ -149,4 +156,19 @@ void MainWindow::on_tableView_doubleClicked(const QModelIndex &index)
             netAdapterWindow->show();
         }
     }
+}
+
+void MainWindow::on_btnFindSoftware_clicked()
+{
+    if(softwareFindWindow !=0) {
+        softwareFindWindow->close();
+        delete softwareFindWindow;
+        softwareFindWindow = 0;
+    }
+    softwareFindWindow = new SoftwareFind(this);
+    softwareFindWindow->soft_name = ui->txtSoftName->text();
+    softwareFindWindow->date_beg = ui->date_beg->dateTime();
+    softwareFindWindow->date_end = ui->date_end->dateTime();
+    softwareFindWindow->updateTable();
+    softwareFindWindow->show();
 }

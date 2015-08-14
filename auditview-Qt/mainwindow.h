@@ -4,6 +4,7 @@
 #include <QMainWindow>
 #include <QSortFilterProxyModel>
 #include "softwaredetails.h"
+#include "softwarefind.h"
 #include "netadapterwindow.h"
 
 namespace Ui {
@@ -31,11 +32,14 @@ private slots:
 
     void on_tableView_doubleClicked(const QModelIndex &index);
 
+    void on_btnFindSoftware_clicked();
+
 private:
     Ui::MainWindow *ui;
     QSortFilterProxyModel *proxyModel;
     SoftwareDetails *softwareDetailsWindow;
     NetAdapterWindow *netAdapterWindow;
+    SoftwareFind *softwareFindWindow;
 };
 
 #endif // MAINWINDOW_H

@@ -15,13 +15,16 @@ SOURCES += main.cpp\
         mainwindow.cpp \
     auditcompsmodel.cpp \
     softwaredetails.cpp \
-    netadapterwindow.cpp
+    netadapterwindow.cpp \
+    softwarefind.cpp
 
 HEADERS  += mainwindow.h \
     auditcompsmodel.h \
     softwaredetails.h \
-    netadapterwindow.h
+    netadapterwindow.h \
+    softwarefind.h
 
 FORMS    += mainwindow.ui \
     softwaredetails.ui \
-    netadapterwindow.ui
+    netadapterwindow.ui \
+    softwarefind.ui
