@@ -6,6 +6,7 @@
 #include <QSortFilterProxyModel>
 #include <QSqlError>
 #include <QtDebug>
+#include <QProcess>
 #include <iostream>
 
 using namespace std;
@@ -154,6 +155,37 @@ void MainWindow::on_tableView_doubleClicked(const QModelIndex &index)
             netAdapterWindow->comp_id = proxyModel->data(proxyModel->index(index.row(),0)).toInt();
             netAdapterWindow->updateTable();
             netAdapterWindow->show();
+        } else if(index.column() == 8) {
+            //QString program = "xfreerdp";
+            QString program = "rdesktop";
+            QString login = index.data().toString();
+            QString username, domain, name, domain_name;
+            QStringList arguments;
+            if (login.length() > 0) {
+                arguments << "-g 1280x1024";
+                arguments << "-D";
+                //arguments << "--no-auth";
+                //arguments << "--ignore-certificate";
+                //arguments << "--no-nla";
+                name = proxyModel->data(proxyModel->index(index.row(),2)).toString();
+                domain_name = proxyModel->data(proxyModel->index(index.row(),3)).toString();
+                int domain_separator = login.indexOf("@");
+                if(domain_separator > 0) username = login.left(domain_separator);
+                arguments << ("-u" + username.trimmed());
+                int dot_separator = login.indexOf(".", domain_separator);
+                if(dot_separator > 0) domain = login.mid(domain_separator + 1, dot_separator - domain_separator - 1);
+                arguments << ("-d" + domain.trimmed());
+                arguments << (name.trimmed() + "." + domain_name.trimmed());
+                qDebug() << arguments;
+                QProcess *rdp_proc = new QProcess();
+                rdp_proc->start(program, arguments);
+                rdp_proc->waitForFinished(500);
+                QByteArray rdp_proc_out = rdp_proc->readAllStandardOutput();
+                QByteArray rdp_proc_err = rdp_proc->readAllStandardError();
+                ui->outText->appendPlainText("rdesktop " + arguments.join(" "));
+                if(rdp_proc_out.trimmed() != "") ui->outText->appendPlainText(rdp_proc_out.trimmed());
+                if(rdp_proc_err.trimmed() != "") ui->outText->appendPlainText(rdp_proc_err.trimmed());
+            }
         }
     }
 }
