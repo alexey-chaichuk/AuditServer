@@ -309,9 +309,9 @@ int enum_installed_applications(const char* server_addr, int server_port, BOOL I
 
             send(s, xml_netadapter_mac, strlen(xml_netadapter_mac), 0);
             sprintf(buf, "%02X:%02X:%02X:%02X:%02X:%02X\"",
-                pAdapterInfo->Address[0], pAdapterInfo->Address[1],
-                pAdapterInfo->Address[2], pAdapterInfo->Address[3],
-                pAdapterInfo->Address[4], pAdapterInfo->Address[5]);
+                pAdapter->Address[0], pAdapter->Address[1],
+                pAdapter->Address[2], pAdapter->Address[3],
+                pAdapter->Address[4], pAdapter->Address[5]);
             send(s, buf, strlen(buf), 0);
 
             send(s, xml_netadapter_end, strlen(xml_netadapter_end), 0);
