@@ -164,9 +164,10 @@
     <mkdir dir="${artifact.temp.output.auditserver:jar}"/>
     <jar destfile="${temp.jar.path.AuditServer.jar}" duplicate="preserve" filesetmanifest="mergewithoutmain">
       <zipfileset dir="${auditserver.output.dir}"/>
-      <zipfileset file="${basedir}/lib/mysql-connector-java-5.1.33.jar"/>
+      <!--<zipfileset file="${basedir}/lib/mysql-connector-java-5.1.33.jar"/>-->
     </jar>
     <copy file="${temp.jar.path.AuditServer.jar}" tofile="${artifact.temp.output.auditserver:jar}/AuditServer.jar"/>
+    <copy file="${basedir}/lib/mysql-connector-java-5.1.33.jar" tofile="${artifact.temp.output.auditserver:jar}/mysql-connector-java-5.1.33.jar"/>
   </target>
   
   <target name="build.all.artifacts" depends="artifact.auditserver:jar" description="Build all artifacts">

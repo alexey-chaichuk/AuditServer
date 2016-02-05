@@ -24,9 +24,9 @@ public class Server {
         String user = null;
         String password = null;
         try {
-            //configProp.load(new FileInputStream("config.properties"));
-            System.out.println(Server.class.getResourceAsStream("/config.properties"));
-            configProp.load(Server.class.getResourceAsStream("/config.properties"));
+            configProp.load(new FileInputStream("config.properties"));
+            //System.out.println(Server.class.getResourceAsStream("/config.properties"));
+            //configProp.load(Server.class.getResourceAsStream("/config.properties"));
             url = configProp.getProperty("url");
             user = configProp.getProperty("user");
             password = configProp.getProperty("password");
